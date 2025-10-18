@@ -1,11 +1,7 @@
+import math
 import sys
 
-"""
-Output:
-- On success: writes the color for each variable (0..K-1), one per line.
-- On failure (no solution found): "No answer."
-
-"""
+# MAIN PARSING 
 if len(sys.argv) != 4:
     sys.stderr.write(" python dfsb.py <INPUT FILE> <OUTPUT FILE> <MODE FLAG>")
     sys.exit(2)
@@ -24,6 +20,7 @@ no_of_variables = None
 no_of_constraints = None
 no_of_colors = None
 constraints = []  # list of [a, b] pairs
+domains = []
 
 with open(input_file, 'r') as f:
     first = f.readline().split()
@@ -61,6 +58,86 @@ def dfs_backtrack(assignment):
     return None
 
 
+# set up domains 
+def initializeDFBSP():
+    global domains
+    domains = [list(range(no_of_colors)) for _ in range(no_of_variables)] # domains where
+
+
+#most restricted variable
+def mrv():
+    most = math.inf
+    index = -1
+    for i, x  in enumerate(domains):
+        if len(x) < most and len(x)!=1:
+            most = len(x)
+            index = i
+
+    # print(f"mrv = {most}\nindex={index}")
+    return index
+
+#least constrained value
+def lcv(var):
+    
+    inconsistencys = math.inf
+    color_no = -1
+
+    var_constraints = []
+
+
+    for (a, b) in constraints: # get all constraints with var
+        if a == var or b == var:
+            var_constraints.append((a,b))
+
+    for i, color in enumerate(domains[var]): # for each color in var, minimize inconsisitencys 
+        sum = 0
+        for (a, b) in var_constraints: 
+            other = a if a!= var else b
+            if color in domains[other]:
+                sum+=1
+
+        if sum < inconsistencys:
+            inconsistencys = sum
+            color_no = i 
+
+    # print(f"lcv= {inconsistencys}\ncolor_no={color_no}")
+
+    return color_no
+
+def asign_var(var, color):
+    domains[var] = [color]
+
+    to_reduce = []
+
+    for (a, b) in constraints: 
+        if a == var:
+            to_reduce.append(b)
+        if b == var:
+            to_reduce.append(a)
+
+
+    for x in to_reduce:
+        domains[x] = list(set(domains[x]) - set([color]))
+
+
+def check_goal_state():
+    for x in domains:
+        if len(x) > 1:
+            return False
+    return True
+
+def dfsb_plus(iteration=0):
+    if check_goal_state():
+        return domains
+    
+    most_restricted_var = mrv()
+    least_constricted_value = lcv(most_restricted_var)
+    asign_var(most_restricted_var, least_constricted_value)
+
+    print(f"iter {iteration}: {domains}\n\n")
+    dfsb_plus(iteration+1)
+
+
 # mode 0 dfsb
 if mode == 0:
     solution = dfs_backtrack({})
@@ -73,5 +150,14 @@ if mode == 0:
 
 # mode 1 dfsb++  You should implement here
 else:
+    initializeDFBSP()
+    solution = dfsb_plus()
+    with open(output_file, "w") as out:
+        if solution is None:
+            out.write("No answer.\n")
+            out.write("No answer.\n")
+        else:
+            for i in range(no_of_variables):
+                out.write(str(solution[i]) + "\n")
 
-    sys.stderr.write("MODE=1 (DFS-B++) is intentionally not included in this starter. Please implement it. You can comment out this line\n")
+
