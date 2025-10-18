@@ -1,3 +1,4 @@
+import copy
 import math
 import sys
 
@@ -79,9 +80,6 @@ def mrv():
 #least constrained value
 def lcv(var):
     
-    inconsistencys = math.inf
-    color_no = -1
-
     var_constraints = []
 
 
@@ -89,22 +87,23 @@ def lcv(var):
         if a == var or b == var:
             var_constraints.append((a,b))
 
-    for i, color in enumerate(domains[var]): # for each color in var, minimize inconsisitencys 
+    color_scores = []
+
+    for color in domains[var]: # for each color in var, minimize inconsisitencys 
         sum = 0
         for (a, b) in var_constraints: 
             other = a if a!= var else b
             if color in domains[other]:
                 sum+=1
+        color_scores.append((color, sum))
 
-        if sum < inconsistencys:
-            inconsistencys = sum
-            color_no = i 
+    color_scores.sort(key=lambda x: x[1])
 
     # print(f"lcv= {inconsistencys}\ncolor_no={color_no}")
 
-    return color_no
+    return [color for color, _ in color_scores]
 
-def asign_var(var, color):
+def assign_var(var, color):
     domains[var] = [color]
 
     to_reduce = []
@@ -117,7 +116,12 @@ def asign_var(var, color):
 
 
     for x in to_reduce:
-        domains[x] = list(set(domains[x]) - set([color]))
+        updated_domain = list(set(domains[x]) - set([color]))
+        if len(updated_domain) == 0:
+            return False
+        domains[x] = updated_domain
+
+    return True
 
 
 def check_goal_state():
@@ -126,17 +130,26 @@ def check_goal_state():
             return False
     return True
 
-def dfsb_plus(iteration=0):
+def dfsb_plus():
+    global domains
     if check_goal_state():
         return domains
-    
-    most_restricted_var = mrv()
-    least_constricted_value = lcv(most_restricted_var)
-    asign_var(most_restricted_var, least_constricted_value)
 
-    print(f"iter {iteration}: {domains}\n\n")
-    dfsb_plus(iteration+1)
+    var = mrv()  # MRV
+    for color in lcv(var):  # LCV order
 
+        old_domains = copy.deepcopy(domains)
+
+        good = assign_var(var, color)
+        if good:  
+            result = dfsb_plus()
+            if result is not None:
+                return result
+
+        # backtrack: restore domains
+        domains = old_domains
+
+    return None
 
 # mode 0 dfsb
 if mode == 0:
@@ -152,6 +165,7 @@ if mode == 0:
 else:
     initializeDFBSP()
     solution = dfsb_plus()
+    print(solution)
     with open(output_file, "w") as out:
         if solution is None:
             out.write("No answer.\n")
