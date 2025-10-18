@@ -1,6 +1,8 @@
 import copy
 import math
 import sys
+import time
+import tracemalloc
 
 # MAIN PARSING 
 if len(sys.argv) != 4:
@@ -22,6 +24,8 @@ no_of_constraints = None
 no_of_colors = None
 constraints = []  # list of [a, b] pairs
 domains = []
+states_explored = 0 
+
 
 with open(input_file, 'r') as f:
     first = f.readline().split()
@@ -132,6 +136,9 @@ def check_goal_state():
 
 def dfsb_plus():
     global domains
+    global states_explored
+    states_explored += 1
+
     if check_goal_state():
         return domains
 
@@ -163,9 +170,21 @@ if mode == 0:
 
 # mode 1 dfsb++  You should implement here
 else:
+    tracemalloc.start()
+    start_time = time.perf_counter()
+
     initializeDFBSP()
     solution = dfsb_plus()
-    print(solution)
+
+    current, peak = tracemalloc.get_traced_memory()
+    end_time = time.perf_counter()
+
+
+    print(f"steps taken: {states_explored}")
+    print(f"time: {end_time - start_time}")
+    print(f"peak memory: {peak}")
+
+
     with open(output_file, "w") as out:
         if solution is None:
             out.write("No answer.\n")

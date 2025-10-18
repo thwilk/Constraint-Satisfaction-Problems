@@ -1,0 +1,16 @@
+python3 dfsb.py input/problem1.txt output/problem1_dfsbp.txt 1
+python3 minconflicts.py input/problem1.txt output/problem1_MCRR.txt 1
+
+python3 dfsb.py input/problem2.txt output/problem2_dfsbp.txt 1
+python3 minconflicts.py input/problem2.txt output/problem2_MCRR.txt 1
+
+python3 dfsb.py input/problem3.txt output/problem3_dfsbp.txt 1
+python3 minconflicts.py input/problem3.txt output/problem3_MCRR.txt 1
+
+python3 dfsb.py input/problem4.txt output/problem4_dfsbp.txt 1
+python3 minconflicts.py input/problem4.txt output/problem4_MCRR.txt 1
+
+python3 dfsb.py input/problem5.txt output/problem5_dfsbp.txt 1
+python3 minconflicts.py input/problem5.txt output/problem5_MCRR.txt 1
+
+
