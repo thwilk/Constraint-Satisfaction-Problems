@@ -1,9 +1,4 @@
-"""
-Output:
-- On success: each variable’s color (0..K-1), one per line.
-- On failure (no solution found after iteration cap): "No answer."
-"""
-
+import random
 import sys
 import random
 
@@ -62,6 +57,29 @@ def min_conflicts_basic(max_steps=500000):
         assign[var] = min_conflict_color(var, assign)
     return None
 
+def split_into_steps(num, groups):
+    x = num/groups
+    remainder = num%groups
+
+    steps = [int(x)] * groups
+
+    steps[-1] += remainder
+    return steps
+
+def min_conflicts_random_restarts():
+    total_allowed_runs = 400000 + M**2
+    num_restarts = random.randint(4, 10)
+
+    max_steps = split_into_steps(total_allowed_runs, num_restarts)
+
+    solution = None
+
+    for x in max_steps:
+        solution = min_conflicts_basic(max_steps=x)
+        if solution:
+            return solution
+
+
 
 # mode 0 MCRS
 if mode == 0:
@@ -75,4 +93,10 @@ if mode == 0:
 
 # mode 1 MCRS with restart  You should implement here
 else:
-    sys.stderr.write("MODE=1 (MCLS-R) not implemented in this starter. Please implement restart logic. You can comment out this line\n")
+    solution = min_conflicts_random_restarts()
+    with open(output_file, "w") as out:
+        if solution is None:
+            out.write("No answer.\n")
+        else:
+            for val in solution:
+                out.write(str(val) + "\n")
